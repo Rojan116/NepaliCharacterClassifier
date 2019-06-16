@@ -1,0 +1,2 @@
+# NepaliCharacterClassifier
+Classify Nepali character
