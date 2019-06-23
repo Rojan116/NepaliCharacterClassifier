@@ -14,6 +14,9 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.List;
+
+import id.hwnc.handwritten.Classifier;
 
 public class NepaliDetector {
     private final String TAG = this.getClass().getSimpleName();
@@ -27,8 +30,16 @@ public class NepaliDetector {
     // Output array [batch_size, 36]
     private float[][] nepaliOutput = null;
 
+    //to store labels
+    private List<String> labels;
+
+    private Classifier cl;
+
     // Name of the file in the assets folder
     private static final String MODEL_PATH = "model.tflite";
+
+    //Name of the labels file
+    private static final String LABEL_PATH = "labels.txt";
 
     // Specify the output size
     private static final int NUMBER_LENGTH = 36;
@@ -76,13 +87,14 @@ public class NepaliDetector {
         }
         preprocess(bitmap);
         runInference();
-        return postprocess();
+        //cl.loadLabelList();
+        return argmax();
     }
 
     /**
      * Go through the output and find the number that was identified.
      *
-     * @return the number that was identified (returns -1 if one wasn't found)
+     * @return the number that was identified (returns  -1 if one wasn't found)
      */
     private int postprocess() {
         for (int i = 0; i < nepaliOutput[0].length; i++) {
@@ -94,6 +106,40 @@ public class NepaliDetector {
         }
         return -1;
     }
+
+    private int argmax() {
+        int maxIdx = -1;
+        float maxProb = 0.0f;
+        for (int i = 0; i < nepaliOutput[0].length; i++) {
+            if (nepaliOutput[0][i] > maxProb) {
+                maxProb = nepaliOutput[0][i];
+                maxIdx = i;
+            }
+        }
+        return maxIdx;
+    }
+
+
+
+
+
+
+public String getLabelPath()
+{
+    return "labels.txt";
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
     /**
      * Load the model file from the assets folder
@@ -117,6 +163,10 @@ public class NepaliDetector {
             return;
         }
 
+
+
+
+
         // Reset the image data
         inputBuffer.rewind();
 
@@ -125,7 +175,7 @@ public class NepaliDetector {
 
         long startTime = SystemClock.uptimeMillis();
 
-        // The bitmap shape should be 28 x 28
+        // The bitmap shape should be 32 x 32
         int[] pixels = new int[width * height];
         bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
 

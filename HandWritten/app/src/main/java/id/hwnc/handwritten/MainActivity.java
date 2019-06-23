@@ -12,6 +12,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.List;
 
 import id.hwnc.handwritten.ml.NepaliDetector;
 import id.hwnc.handwritten.views.DrawModel;
@@ -35,12 +38,16 @@ import id.hwnc.handwritten.views.DrawView;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, View.OnTouchListener{
 
     private static final int PIXEL_WIDTH = 512;
+    private static final String LOG_TAG ="" ;
 
 
     private final String TAG = this.getClass().getSimpleName();
 
   //  private static final int PIXEL_WIDTH = 28;
     private NepaliDetector nepaliClassifier;
+
+    // list to hold labels data
+    private List<String> labels;
 
 
 
@@ -69,6 +76,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //initialization
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setUpClassifier();
+
 
 
 
@@ -126,6 +135,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
+    private void setUpClassifier() {
+        try {
+            nepaliClassifier = new NepaliDetector(this);
+        } catch (Exception ex) {
+            Toast.makeText(this, "Failed to create classifier...", Toast.LENGTH_LONG).show();
+            Log.e(LOG_TAG, "setUpClassifier(): Failed to create tflite model", ex);
+        }
+    }
+
 
     //creates a model object in memory using the saved tensorflow protobuf model file
     //which contains all the learned weights
@@ -160,7 +178,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
-
     @Override
     public void onClick(View view) {
         //when the user clicks something
@@ -178,12 +195,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             float pixels[] = drawView.getPixelData();
             Bitmap bitmap = drawView.getBitmap();
             Bitmap scaledBitmap = drawView.resizeBitmap(bitmap);
-            int nepaliCharacter = nepaliClassifier.classify(scaledBitmap);
+          //  NepaliDetector nepaliClassifier = new NepaliDetector(Activity activity);
+           // Interpreter tflite = new Interpreter(nepaliClassifier.loadModelFile(activity));
+             int nepaliCharacter = nepaliClassifier.classify(scaledBitmap);
             if (nepaliCharacter >= 0) {
-                Log.d(TAG, "Found Digit = " + nepaliCharacter);
+                Log.d(TAG, "Found Character at index= " + nepaliCharacter);
+                Log.d(TAG, "Found labels" + nepaliClassifier.getLabelPath());
+                //labels = cl.loadLabelList();
                 resText.setText("Found Character "+nepaliCharacter);
             } else {
                 resText.setText("not_detected");
+                Log.d(TAG, "Digit not Found  = " + nepaliCharacter);
             }
 
             //init an empty string to fill with the classification output
@@ -201,7 +223,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                            res.getConf());
 //                }
 //            }
-           resText.setText(text);
+          // resText.setText(text);
         }
     }
 
@@ -270,6 +292,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mLastY = y;
         drawView.invalidate();
     }
+
+public String getLabels()
+{
+    return "labels.txt";
+}
 
     private void processTouchUp() {
         drawModel.endLine();

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -22,6 +23,7 @@ import java.util.List;
 
 public class Classifier  extends AppCompatActivity {
 
+    private static final String TAG ="" ;
     // Output array [batch_size, 36]
     private float[][] nepaliOutput = null;
 
@@ -83,16 +85,17 @@ public class Classifier  extends AppCompatActivity {
                     4 * 1 * DIM_IMG_SIZE_X * DIM_IMG_SIZE_Y * DIM_PIXEL_SIZE);
             inputBuffer.order(ByteOrder.nativeOrder());
             nepaliOutput = new float[1][36];
-           // Log.d(TAG, "Created a Tensorflow Lite MNIST Classifier.");
+           Log.d(TAG, "Created a Tensorflow Lite Nepali Classifier.");
         } catch (IOException e) {
-            //Log.e(TAG, "IOException loading the tflite file");
+            Log.e(TAG, "IOException loading the tflite file");
         }
     }
-    
+
+
     
     
     // loads the labels from the label txt file in assets into a string array
-    private List<String> loadLabelList() throws IOException {
+    public List<String> loadLabelList() throws IOException {
         List<String> labelList = new ArrayList<String>();
         BufferedReader reader =
                 new BufferedReader(new InputStreamReader(this.getAssets().open("labels.txt")));
@@ -101,6 +104,7 @@ public class Classifier  extends AppCompatActivity {
             labelList.add(line);
         }
         reader.close();
+
         return labelList;
     }
 
